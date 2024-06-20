@@ -21,6 +21,11 @@ Endpoint do serviço REST para consumo
 * <b>Configuração do Ambiente:</b>  
   Crie um tópico no Pub/Sub.  
   Habilite as APIs necessárias no GCP.
+* <b>Projeto Spring:</b>  
+  Insira as variáveis de ambiente PROJECT_ID, EMULATOR_HOST e BULLLA_PLOOMES_MS_URL  
+  Execute o projeto com o curl:  ``curl --location 'http://localhost:8082/' \
+  --header 'Content-Type: text/plain' \
+  --data 'topic1'``
 
 ## Ferramentas utilizadas
 * Linguagem principal: Java 21
