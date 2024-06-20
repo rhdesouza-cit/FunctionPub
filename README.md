@@ -1,5 +1,4 @@
 # Projeto: Prova de Conceito (PoC) - Consumo de Serviço REST e Publicação em Tópico Pub/Sub
-____________________________________________________________________
 Este projeto é uma Prova de Conceito (PoC) que tem como objetivo avaliar a viabilidade e a eficácia de consumir dados de um serviço REST e publicar esses dados em um tópico do Google Cloud Pub/Sub. Além disso, este projeto irá considerar a utilização de uma Google Cloud Function para realizar essas operações de maneira eficiente e escalável.
 
 ## Objetivos
