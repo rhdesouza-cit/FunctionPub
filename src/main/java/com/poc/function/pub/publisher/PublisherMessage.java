@@ -34,32 +34,64 @@ public class PublisherMessage {
 
     private static final String MESSAGE_PUBLISHED = "Published message ID: %s";
 
-    public void publisher(String topicId, String message) throws IOException, ExecutionException, InterruptedException {
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(emulatorHost).usePlaintext().build();
-        final TransportChannelProvider channelProvider = FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel));
+    // Method names should be verbs and express actions
+    public void publishMessage(String topicId, String message) {
+        ManagedChannel channel = createManagedChannel(emulatorHost);
+        final TransportChannelProvider channelProvider = createTransportChannelProvider(channel);
         final CredentialsProvider credentialsProvider = NoCredentialsProvider.create();
 
         TopicName topicName = TopicName.of(projectId, topicId);
         Publisher publisher = null;
         try {
-            // Create a publisher instance with default settings bound to the topic
-            publisher = Publisher.newBuilder(topicName)
-                .setChannelProvider(channelProvider)
-                .setCredentialsProvider(credentialsProvider)
-                .build();
+            publisher = createPublisher(topicName, channelProvider, credentialsProvider);
 
             ByteString data = ByteString.copyFromUtf8(message);
-            PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
+            PubsubMessage pubsubMessage = createPubsubMessage(data);
 
             // Once published, returns a server-assigned message id (unique within the topic)
             ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
             String messageId = messageIdFuture.get();
-            log.info(MESSAGE_PUBLISHED.formatted(messageId));
+            log.info(String.format(MESSAGE_PUBLISHED, messageId));
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } finally {
-            if (publisher != null) {
-                // When finished with the publisher, shutdown to free up resources.
-                publisher.shutdown();
+            shutdownPublisher(publisher);
+        }
+    }
+
+    private ManagedChannel createManagedChannel(String emulatorHost) {
+        return ManagedChannelBuilder.forTarget(emulatorHost).usePlaintext().build();
+    }
+
+    private TransportChannelProvider createTransportChannelProvider(ManagedChannel channel) {
+        return FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel));
+    }
+
+    private Publisher createPublisher(TopicName topicName, TransportChannelProvider channelProvider,
+        CredentialsProvider credentialsProvider) {
+        try {
+            return Publisher.newBuilder(topicName)
+                .setChannelProvider(channelProvider)
+                .setCredentialsProvider(credentialsProvider)
+                .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private PubsubMessage createPubsubMessage(ByteString data) {
+        return PubsubMessage.newBuilder().setData(data).build();
+    }
+
+    private void shutdownPublisher(Publisher publisher) {
+        if (publisher != null) {
+            publisher.shutdown();
+            try {
                 publisher.awaitTermination(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
     }

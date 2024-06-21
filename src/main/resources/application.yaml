@@ -20,7 +20,5 @@ feign:
 
 br:
     com:
-        bullla:
-            ploomes:
-                url: ${BULLLA_PLOOMES_MS_URL}
-                user-key: ${BULLLA_PLOOMES_MS_KEY}
+        external:
+            url: ${EXTERNAL_CLIENT_MS_URL}
